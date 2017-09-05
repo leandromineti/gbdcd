@@ -1,10 +1,16 @@
 language: R
-r: release
+r: 
+  - release
+  - devel
 sudo: false
 cache: packages
 
 r_packages:
   - covr
+  
+before_install:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
 
 after_success:
   - Rscript -e 'library(covr); codecov()'

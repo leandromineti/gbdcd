@@ -5,7 +5,7 @@
 #' @author leandromineti@nexer.com.br
 #'
 #' @param y a vector of indices.
-#' @param vix a matrix of neighbors.
+#' @param viz a matrix of neighbors.
 #' @param c parameter indicating the a priori number of clusters.
 #' @param n_iterations number of iterations.
 #' @param burn_in number of discarded iterations.
