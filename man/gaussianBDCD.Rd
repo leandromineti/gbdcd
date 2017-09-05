@@ -8,7 +8,19 @@ gaussianBDCD(y, viz, c = 0.35, n_iterations = 1e+06, burn_in = 5e+05,
   mu0 = 0, sigma0 = sqrt(2))
 }
 \arguments{
-\item{parameter.name}{}
+\item{y}{a vector of indices.}
+
+\item{c}{parameter indicating the a priori number of clusters.}
+
+\item{n_iterations}{number of iterations.}
+
+\item{burn_in}{number of discarded iterations.}
+
+\item{mu0}{priori.}
+
+\item{sigma0}{priori.}
+
+\item{vix}{a matrix of neighbors.}
 }
 \value{
 \code{data.frame}

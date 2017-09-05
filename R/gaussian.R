@@ -10,7 +10,7 @@
 #' @param n_iterations number of iterations.
 #' @param burn_in number of discarded iterations.
 #' @param mu0 priori.
-#' @param sigma2 priori.
+#' @param sigma0 priori.
 #'
 #' @return \code{data.frame} 
 #'
@@ -21,9 +21,6 @@
 #' @family gbdcd
 gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500000,
                          mu0=0, sigma0=sqrt(2)){
-  
-  require(geoR)
-  require(plyr)
   
   ## Padroniza a variável "resposta"
   mean.y <- mean(y)
@@ -50,15 +47,6 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
   centros        <- sample.int(N, size = media.k, 
                                replace = FALSE) 
   particoes      <- RcppPartition(viz, centros)
-  
-  
-  ## Gráfico da informação "a priori" sobre a distribuição do
-  ## número de clusters
-  par(mfrow=c(2,2))
-  barplot(Probs, names.arg = 1:N, col="blue",
-          main="k-Priori")
-  ## Média a priori da distribuição de k.
-  cat("\n Media a priori de k: ", media.k, "\n")
   
   ## Configuração inicial do cluster  
   medias <- aggregate(y ~ particoes, FUN=mean)
@@ -198,7 +186,7 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
         soma2  <- sum( (y - vec.Medias[particoes])^2 ) 
         ## Atualiza o parâmetro de variância POR MÁXIMA VEROSSIMILHANÇA...
         S2     <- soma2/(N-k)
-        S2.new <- rinvchisq(n=1, df=N-k, scale=S2) ## PROBLEMA COM "df=N-k" quando "N-k -> 0"
+        S2.new <- geoR::rinvchisq(n=1, df=N-k, scale=S2) ## PROBLEMA COM "df=N-k" quando "N-k -> 0"
         
         if(S2.new < 100){
           sigma2 <- S2.new
@@ -332,26 +320,10 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
   v_aceite  <- v_aceite[seq.burn]
   v_centros <- v_centros[seq.burn]
   
-  
-  ## Figuras com resultados
-  plot(1:length(k_vector),k_vector,type = 'l', xlab="step", main="k-MCMC")
-  barplot(table(k_vector)/sum(table(k_vector)), col="light blue", main="k-Posteriori") 
-  
-  cat("\n Estimativas p/ k: \n")
-  print( summary(k_vector) )
-  print( quantile(k_vector, probs=c(0.05, 0.95)) )
-  
-  cat("Taxas de aceitação: \n \n")
-  print( aggregate(v_aceite ~ v_passos, FUN=mean) )
-  
   ## Médias "a posteriori" e "intervalos de credibilidade"
   Yhat <- apply(mat.Yhat, MARGIN=1, FUN=median)
   lwr  <- apply(mat.Yhat, MARGIN=1, FUN=function(x) quantile(x, probs=0.05))
   upr  <- apply(mat.Yhat, MARGIN=1, FUN=function(x) quantile(x, probs=0.95))
-  
-  cat("\n Estimativas p sigma2: \n")
-  print( summary(v_sigma2) )
-  print( quantile(v_sigma2, probs=c(0.05, 0.95)) )
   
   ## Processamento da Matrix de Frequências de "conexões"
   ## Pegando o resultado do Leandro
@@ -365,7 +337,6 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
   
   ## Forma as partições utilizando análise Hierárquica de clusters
   clusters <- hclust(as.dist(matConexoes), c("single","complete")[1])
-  plot(clusters, ylab="proximity", main="Proximity Dendogram", xlab="", cex=0.7)
   
   saida <- list(mean.info    = cbind(lwr, Yhat, upr),
                 cluster.info = clusters,
