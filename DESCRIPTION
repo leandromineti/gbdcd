@@ -1,0 +1,20 @@
+Package: gbdcd
+Type: Package
+Title: Implementation of the Bayesian Detection of Clusters and Discontinuities.
+Version: 0.0.1
+Date: 2017-09-05
+Authors@R: c(
+    person("Leandro", "Mineti", email = "leandromineti@gmail.com", role = c("aut", "cre")),
+    person("Marcelo", "Costa", email = "macosta.est@gmail.com", role = c("aut"))
+    )
+Maintainer: Who to complain to <leandromineti@gmail.com>
+Description: Implementation of the Bayesian Detection of Clusters and Discontinuities.
+License: MIT
+Imports: 
+  Rcpp (>= 0.12.12),
+  geoR,
+  plyr
+LinkingTo: 
+  Rcpp, 
+  RcppArmadillo
+RoxygenNote: 6.0.1

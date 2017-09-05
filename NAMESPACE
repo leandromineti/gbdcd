@@ -1,0 +1,7 @@
+useDynLib(gbdcd)
+import(geoR)
+import(plyr)
+importFrom(Rcpp, evalCpp)
+export(gaussianBDCD,
+       RcppFreqMatrix,
+       RcppPartition)
