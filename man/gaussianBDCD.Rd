@@ -23,14 +23,14 @@ gaussianBDCD(y, viz, c = 0.35, n_iterations = 1e+06, burn_in = 5e+05,
 \item{sigma0}{priori.}
 }
 \value{
-\code{data.frame}
+\code{list}
 }
 \description{
-Description
+Implementation of the Bayesian Detection of Clusters and Discontinuities
 }
 \examples{
 
 }
 \author{
-leandromineti@nexer.com.br
+leandromineti@gmail.com
 }

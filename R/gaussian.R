@@ -1,8 +1,8 @@
 #' Gaussian BDCD
 #' 
-#' Description
+#' Implementation of the Bayesian Detection of Clusters and Discontinuities
 #'
-#' @author leandromineti@nexer.com.br
+#' @author leandromineti@gmail.com
 #'
 #' @param y a vector of indices.
 #' @param viz a matrix of neighbors.
@@ -12,7 +12,7 @@
 #' @param mu0 priori.
 #' @param sigma0 priori.
 #'
-#' @return \code{data.frame} 
+#' @return \code{list} 
 #'
 #' @export
 #' 
@@ -20,22 +20,22 @@
 #'
 #' @family gbdcd
 gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500000,
-                         mu0=0, sigma0=sqrt(2)){
+                         mu0=0, sigma0=sqrt(2)) {
   
-  ## Padroniza a variável "resposta"
+  # Normalization of the target variable
   mean.y <- mean(y)
-  sd.y   <- sd(y)
-  y      <- (y - mean.y)/sd.y
+  sd.y <- sd(y)
+  y <- (y - mean.y)/sd.y
   
-  N       <- length(y)
-  Probs   <- (1-c)^(1:N)
-  Probs   <- Probs/sum(Probs)
-  media.k <- round( sum((1:N)*Probs) ) ## Média priori de k.
+  N <- length(y)
+  Probs <- (1-c)^(1:N)
+  Probs <- Probs/sum(Probs)
+  media.k <- round( sum((1:N)*Probs) )  # A priori mean for the number of clusters.
   
-  ## Prioris p/ médias
+  # A priori for the means in each group
   sig2ma0   <- sigma0^2   
   
-  ## Variáveis de armazenamento
+  # Start-up variables
   k_vector       <- rep(NA, n_iterations)
   v_sigma2       <- rep(NA, n_iterations)
   v_passos       <- rep(NA, n_iterations)
@@ -48,19 +48,18 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
                                replace = FALSE) 
   particoes      <- RcppPartition(viz, centros)
   
-  ## Configuração inicial do cluster  
+  # Initial cluster configuration
   medias <- aggregate(y ~ particoes, FUN=mean)
   vec.Medias[medias$particoes] <- medias$y
   sigma2 <- sum( (y - vec.Medias[particoes])^2 )/(N-length(centros))
   
-  ## Barra de execução
+  # Initializar progress bar
   pb <- txtProgressBar(min = 0, max = n_iterations, char= "=", title= "progress bar")
   
-  ## INICIO DAS ITERAÇÕES
+  ## Beginning of the chain ---------------------------------------------------
   for(i in 1:n_iterations)
   {
-    ## Seleciona o "passo" considerando o estado (tamanho)
-    ## atual dos clusters...
+    # Chooses the step considering the present state of the clusters.
     k <- length(centros)
     
     if(k == N){
@@ -76,9 +75,8 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
       }
     }
     
-    ## - - - - - - - - - - - - - - - - - - - - -
-    ## Caso seja selecionado nascimento: "Birth"
-    if(passo == "Birth"){ ## Birth
+    ## Birth step -------------------------------------------------------------
+    if(passo == "Birth"){
       ## Seleciona um potencial novo centro
       new.centro  <- sample((1:N)[!((1:N) %in% centros)], size=1)
       ## Insere no vetor de centros
@@ -120,10 +118,9 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
         v_aceite[i] <- 1
       }
     }
-    
-    ## - - - - - - - - - - - - - - - - - - - - -
-    ## Caso seja selecionado morte: "Death"
-    if(passo == "Death"){ ## Death
+
+    ## Death step -------------------------------------------------------------
+    if(passo == "Death"){ 
       centro  <- sample(centros, 1)
       medias  <- aggregate(y ~ particoes, FUN=mean)
       media   <- subset(medias,  particoes == centro)$y
@@ -162,10 +159,8 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
       } 
     }
     
-    ## - - - - - - - - - - - - - - - - - - - - -
-    ## Caso seja selecionado atualização: "Update"
-    
-    if(passo == "Update"){ ## Update
+    ## Update step ------------------------------------------------------------
+    if(passo == "Update"){
       ## Atualiza o vetor de médias
       medias    <- aggregate(y ~ particoes, FUN=mean)
       contagens <- as.data.frame(table(particoes))
@@ -196,10 +191,8 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
       v_aceite[i] <- 1
     }
     
-    ## - - - - - - - - - - - - - - - - - - - - -
-    ## Caso seja selecionado morte: "Shift"
-    
-    if(passo == "Shift"){ ## Shift
+    ## Shift step -------------------------------------------------------------
+    if(passo == "Shift"){
       
       centros_shift_ok  <- centros
       new.centros       <- centros
@@ -264,9 +257,8 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
       }
     }
     
-    ## - - - - - - - - - - - - - - - - - - - - -
-    ## Caso seja selecionado morte: "Switch"
-    if(passo == "Switch"){ ## Switch
+    ## Switch step ------------------------------------------------------------
+    if(passo == "Switch"){
       
       ## Escolhe dois centros e troca
       switch      <- sample(1:length(centros), size=2)
@@ -304,20 +296,19 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
     if(i > burn_in) freq_matrix <- freq_matrix + RcppFreqMatrix(particoes)
     
   }
-  ## FIM DAS ITERAÇÕES
+  
   Sys.sleep(1)
-  close(pb)
+  close(pb)  # Ends progress bar
   
-  ## - - - - - - - - - - - - - - - - - - - - - - - 
-  ## Processamento dos resultados
+  ## Results processing -------------------------------------------------------
   
-  ## Retira o Burn-in
-  seq.burn  <- -(1:burn_in)
-  k_vector  <- k_vector[seq.burn]
-  v_sigma2  <- v_sigma2[seq.burn]
-  v_passos  <- v_passos[seq.burn]
-  mat.Yhat  <- mat.Yhat[,seq.burn]
-  v_aceite  <- v_aceite[seq.burn]
+  # Remove burn-in
+  seq.burn <- -(1:burn_in)
+  k_vector <- k_vector[seq.burn]
+  v_sigma2 <- v_sigma2[seq.burn]
+  v_passos <- v_passos[seq.burn]
+  mat.Yhat <- mat.Yhat[,seq.burn]
+  v_aceite <- v_aceite[seq.burn]
   v_centros <- v_centros[seq.burn]
   
   ## Médias "a posteriori" e "intervalos de credibilidade"
@@ -338,7 +329,7 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
   ## Forma as partições utilizando análise Hierárquica de clusters
   clusters <- hclust(as.dist(matConexoes), c("single","complete")[1])
   
-  saida <- list(mean.info    = cbind(lwr, Yhat, upr),
+  output <- list(mean.info    = cbind(lwr, Yhat, upr),
                 cluster.info = clusters,
                 matConexoes  = matConexoes,
                 k.MCMC       = k_vector,
@@ -346,5 +337,5 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
                 sd.y         = sd.y,
                 vec.centros  = v_centros)
   
-  return(saida)
+  return(output)
 }

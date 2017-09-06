@@ -23,4 +23,3 @@ RcppPartition <- function(neighbors, centers) {
 RcppFreqMatrix <- function(partitions) {
     .Call('_gbdcd_RcppFreqMatrix', PACKAGE = 'gbdcd', partitions)
 }
-
