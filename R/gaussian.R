@@ -5,7 +5,7 @@
 #' @author leandromineti@gmail.com
 #'
 #' @param y a vector of indices.
-#' @param viz a matrix of neighbors.
+#' @param viz a matrix defining the neighbors.
 #' @param c parameter indicating the a priori number of clusters.
 #' @param n_iterations number of iterations.
 #' @param burn_in number of discarded iterations.
@@ -36,24 +36,24 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
   sig2ma0   <- sigma0^2   
   
   # Start-up variables
-  k_vector       <- rep(NA, n_iterations)
-  v_sigma2       <- rep(NA, n_iterations)
-  v_passos       <- rep(NA, n_iterations)
-  v_centros      <- rep(NA, n_iterations)
-  v_aceite       <- rep(0, n_iterations)
-  mat.Yhat       <- matrix(NA, N, n_iterations)
-  freq_matrix    <- matrix(0, N, N)
-  vec.Medias     <- rep(NA, N)
-  centros        <- sample.int(N, size = media.k, 
+  k_vector <- rep(NA, n_iterations)
+  v_sigma2 <- rep(NA, n_iterations)
+  v_passos <- rep(NA, n_iterations)
+  v_centros <- rep(NA, n_iterations)
+  v_aceite <- rep(0, n_iterations)
+  mat.Yhat <- matrix(NA, N, n_iterations)
+  freq_matrix <- matrix(0, N, N)
+  vec.Medias <- rep(NA, N)
+  centros <- sample.int(N, size = media.k, 
                                replace = FALSE) 
-  particoes      <- RcppPartition(viz, centros)
+  particoes <- RcppPartition(viz, centros)
   
   # Initial cluster configuration
   medias <- aggregate(y ~ particoes, FUN=mean)
   vec.Medias[medias$particoes] <- medias$y
   sigma2 <- sum( (y - vec.Medias[particoes])^2 )/(N-length(centros))
   
-  # Initializar progress bar
+  # Initialize progress bar
   pb <- txtProgressBar(min = 0, max = n_iterations, char= "=", title= "progress bar")
   
   ## Beginning of the chain ---------------------------------------------------
@@ -77,9 +77,9 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
     
     ## Birth step -------------------------------------------------------------
     if(passo == "Birth"){
-      ## Seleciona um potencial novo centro
+      # Select a potential new center
       new.centro  <- sample((1:N)[!((1:N) %in% centros)], size=1)
-      ## Insere no vetor de centros
+      # Insert the selected center into the vector of centers
       new.centros <- append(centros, new.centro, after = sample(0:length(centros), size=1))
       
       new.particoes   <- RcppPartition(viz, new.centros)
@@ -101,13 +101,12 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
       probMkplus1 <- dnorm(vec.Medias[new.centro], mean = mu0, 
                            sd = sigma0)
       
-      ## Cálculo da razão de Verossimilhança
+      # Likelihood ratio
       LLk      <- sum( dnorm(y, mean = vec.Medias[particoes],     sd=sqrt(sigma2), log=TRUE ) )
       LLkplus1 <- sum( dnorm(y, mean = vec.Medias[new.particoes], sd=sqrt(sigma2), log=TRUE ) )
       RAZAO    <- exp(LLkplus1 - LLk)
       k        <- length(centros)
       
-      ## A     <- RAZÃO * (1-c) * (1/(N-k)) * 1 * (probMkplus1/phi) ## ORIGINAL
       A     <- RAZAO * (1-c) * 1 * (probMkplus1/phi)
       
       alpha <- min(1, A)
@@ -141,13 +140,12 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
       new.particoes <- RcppPartition(viz, new.centros)
       new.medias    <- aggregate(y ~ new.particoes, FUN=mean)
       
-      ## Calculo da razão de Verossimilhança
+      # Likelihood ratio
       LLk       <- sum( dnorm(y, mean = vec.Medias[particoes],     sd=sqrt(sigma2), log=TRUE ) )
       LLkminus1 <- sum( dnorm(y, mean = vec.Medias[new.particoes], sd=sqrt(sigma2), log=TRUE ) )
       RAZAO     <- exp(LLkminus1 - LLk)
       k         <- length(centros)
-      
-      ## A     <- RAZAO * (1/(1-c)) * (N-k+1) * 1 * (phi/probMkminus1) ## ORIGINAL
+
       A     <- RAZAO * (1/(1-c)) * 1 * (phi/probMkminus1)
       
       alpha <- min(1, A)
@@ -161,27 +159,26 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
     
     ## Update step ------------------------------------------------------------
     if(passo == "Update"){
-      ## Atualiza o vetor de médias
+      # Update the vector of means
       medias    <- aggregate(y ~ particoes, FUN=mean)
       contagens <- as.data.frame(table(particoes))
       medias    <- merge(medias, contagens, by="particoes") 
       pesos     <- sigma2/( medias$Freq*sig2ma0 + sigma2 )
       
-      ## Atualiza VETOR DE MEDIAS: "PRIORI" com "VEROSSIMILHANÇA LOCAL"
+      # Update the vector os means: priori with local likelihood
       vec.Medias[medias$particoes] <- rnorm(dim(medias)[1],
                                             mean = pesos*mu0 + (1-pesos)*medias$y,
                                             sd   = sqrt( 1/((1/sig2ma0) + (medias$Freq/sigma2)) )  )
       
-      ## Atualiza o parâmetro de variância POR CONJUGAÇÃO...
-      ## "PRIORI" com "VEROSSIMILHANÇA"
-      ## Supondo médias conhecidas
+      # Update the variance parameter according to the priori and the likelihood
+      # assuming known means
       k <- length(centros)
       
       if(k < N){
         soma2  <- sum( (y - vec.Medias[particoes])^2 ) 
-        ## Atualiza o parâmetro de variância POR MÁXIMA VEROSSIMILHANÇA...
+        # Maximum likelihood
         S2     <- soma2/(N-k)
-        S2.new <- geoR::rinvchisq(n=1, df=N-k, scale=S2) ## PROBLEMA COM "df=N-k" quando "N-k -> 0"
+        S2.new <- geoR::rinvchisq(n=1, df=N-k, scale=S2) 
         
         if(S2.new < 100){
           sigma2 <- S2.new
@@ -199,18 +196,18 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
       
       for(cntr in centros)    
       {
-        ## Se todos os vizinhos de um centro também são centros: remove o centro do vetor
+        # If all neighbors of a center are centers, remove the center from the vector
         if(all(viz[which(viz[,1]==cntr),2] %in% centros)) 
           centros_shift_ok <- centros_shift_ok[centros_shift_ok!=cntr]
       }
       
-      ## Dentre os centros possíveis, escolhe um
+      # Given the possible centers, choose one
       if(length(centros_shift_ok)==1){ 
         centro <- centros_shift_ok
       } else   centro <- sample(centros_shift_ok, size = 1)
-      ## Vertor com os vizinhos do centro escolhido
+      # Neighbors of the choosen center
       viz_do_centro <- viz[which(viz[,1]==centro),2]
-      ## Vetor com os vizinhos livres do centro escolhido
+      # Free neighbors of the choosen center
       viz_livres     <- viz_do_centro[!(viz_do_centro %in% centros)]
       
       if(length(viz_livres)==1){ 
@@ -227,22 +224,22 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
       vec.Medias[shift] <- vec.Medias[centro]
       
       new.centros_shift_ok <- new.centros
-      ## Processo idêntico ao anterior para o novo vetor de centros
+      # Repeats the previous procedure for the new vector of centers
       for(nc in new.centros)   
       {
         if(all(viz[which(viz[,1]==nc),2] %in% new.centros)) 
           new.centros_shift_ok <- new.centros_shift_ok[new.centros_shift_ok!=nc]
       }
       
-      ## Vizinhos do novo centro
+      # Neighbors of the choosen center
       viz_new_centro  <- viz[which(viz[,1]==shift),2]
-      ## Vizinhos livres do novo centro
+      # Free neighbors of the choosen center
       new.viz_livres  <- viz_new_centro[!(viz_new_centro %in% new.centros)]
       
       new.n_Gk <- length(new.centros_shift_ok)
       new.m_Gj <- length(new.viz_livres)
       
-      ## Cálculo da razão de Verossimilhança
+      # Likelihood ratio
       LLk       <- sum( dnorm(y, mean = vec.Medias[particoes],     sd=sqrt(sigma2), log=TRUE ) )
       LLkshift  <- sum( dnorm(y, mean = vec.Medias[new.particoes], sd=sqrt(sigma2), log=TRUE ) )
       RAZAO     <- exp(LLkshift - LLk)
@@ -260,13 +257,13 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
     ## Switch step ------------------------------------------------------------
     if(passo == "Switch"){
       
-      ## Escolhe dois centros e troca
+      # Choose two centers and switch
       switch      <- sample(1:length(centros), size=2)
       new.centros <- replace(centros, list = switch, centros[rev(switch)])
       
       new.particoes  <- RcppPartition(viz, new.centros)
       
-      ## Cálculo da razão de Verossimilhança
+      # Likelihood ratio
       LLk       <- sum( dnorm(y, mean = vec.Medias[particoes],     sd=sqrt(sigma2), log=TRUE ) )
       LLkswitch <- sum( dnorm(y, mean = vec.Medias[new.particoes], sd=sqrt(sigma2), log=TRUE ) )
       RAZAO     <- exp(LLkswitch - LLk)
@@ -282,19 +279,18 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
       
     }
     
-    ## - - - - - - - - - - - - - - - - - - - - -
+    # Update output variables
     k_vector[i]  <- length(centros)
     v_sigma2[i]  <- sigma2
     v_passos[i]  <- passo
     mat.Yhat[,i] <- vec.Medias[particoes]
     v_centros[i] <- paste(centros, collapse=";")
     
-    ## Set progress bar	
+    # Set progress bar	
     setTxtProgressBar(pb, i, "running Reversible Jump...")
     
-    ## Preencher matriz de frequência
+    # Frequency matrix data
     if(i > burn_in) freq_matrix <- freq_matrix + RcppFreqMatrix(particoes)
-    
   }
   
   Sys.sleep(1)
@@ -311,22 +307,19 @@ gaussianBDCD <- function(y, viz, c = 0.35, n_iterations = 1000000, burn_in = 500
   v_aceite <- v_aceite[seq.burn]
   v_centros <- v_centros[seq.burn]
   
-  ## Médias "a posteriori" e "intervalos de credibilidade"
+  # A posteriori means and confidence interval
   Yhat <- apply(mat.Yhat, MARGIN=1, FUN=median)
   lwr  <- apply(mat.Yhat, MARGIN=1, FUN=function(x) quantile(x, probs=0.05))
   upr  <- apply(mat.Yhat, MARGIN=1, FUN=function(x) quantile(x, probs=0.95))
   
-  ## Processamento da Matrix de Frequências de "conexões"
-  ## Pegando o resultado do Leandro
+  # Processing frequency matrix results
   matConexoes <- freq_matrix
-  
-  ## Preenche TODA a matriz
   matConexoes[lower.tri(matConexoes)] <- t(matConexoes)[lower.tri(matConexoes)]
   maximo <- max(as.vector(matConexoes), na.rm=TRUE)
   matConexoes       <- maximo - matConexoes
   diag(matConexoes) <- maximo + 1
   
-  ## Forma as partições utilizando análise Hierárquica de clusters
+  # Partitioning using hierarchical clustering 
   clusters <- hclust(as.dist(matConexoes), c("single","complete")[1])
   
   output <- list(mean.info    = cbind(lwr, Yhat, upr),

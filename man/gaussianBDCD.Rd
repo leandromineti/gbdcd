@@ -10,7 +10,7 @@ gaussianBDCD(y, viz, c = 0.35, n_iterations = 1e+06, burn_in = 5e+05,
 \arguments{
 \item{y}{a vector of indices.}
 
-\item{viz}{a matrix of neighbors.}
+\item{viz}{a matrix defining the neighbors.}
 
 \item{c}{parameter indicating the a priori number of clusters.}
 
