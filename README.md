@@ -7,8 +7,40 @@ gbdcd
 Overview
 --------
 
+An R package implementing the Bayesian Detection of Clusters and Discontinuities.
+
 Installation
 ------------
 
+``` r
+library(devtools)
+
+devtools::install_github("leandromineti/gbdcd")
+```
+
 Usage
 -----
+
+``` r
+library(gbdcd)
+
+data("aneeldata", package = "gbdcd")
+
+target_variable <- aneeldata$target
+neighbors <- aneeldata$connections
+
+res <- gaussianBDCD(y = target_variable, 
+                    viz = neighbors, 
+                    c = 0.35, 
+                    n_iterations = 10000, 
+                    burn_in = 5000, 
+                    mu0 = 0, 
+                    sigma0 = sqrt(2))
+```
+
+### Todo list
+
+-   \[x\] basic unit testing for all functions.
+-   \[ \] improve README with results.
+-   \[ \] improve function documentation.
+-   \[ \] publish package on CRAN.
