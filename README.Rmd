@@ -50,6 +50,7 @@ res <- gaussianBDCD(y = target_variable,
 ### Todo list
 
 - [x] basic unit testing for all functions.
+- [ ] turn all variable and function names into English.
 - [ ] improve README with results.
 - [ ] improve function documentation.
 - [ ] publish package on CRAN.
