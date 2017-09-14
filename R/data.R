@@ -5,3 +5,10 @@
 #' @usage data("aneeldata", package = "gbdcd")
 #'
 "aneeldata"
+
+#' ANEEL database on efficiency scores, environmental and geographical data.
+#'
+#'
+#' @usage data("aneelshape", package = "gbdcd")
+#'
+"aneelshape"
