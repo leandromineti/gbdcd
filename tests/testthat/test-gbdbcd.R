@@ -11,9 +11,10 @@ test_that("Frequency matrix", {
 })
 
 data("aneeldata", package = "gbdcd")
+data("aneelshape", package = "gbdcd")
 
 test_that("Partitioning", {
-  dt <- aneeldata[[2]]
+  dt <- aneeldata[[1]]
   part <- RcppPartition(dt, c(3, 40)) 
   expect_equal(length(part), 57)
 })
@@ -21,6 +22,6 @@ test_that("Partitioning", {
 context("Gbdcd")
 
 test_that("gbdcd function", {
-  res <- gaussianBDCD(y = aneeldata[[1]], viz = aneeldata[[2]], n_iterations = 1000, burn_in = 500, c = 0.35, 0, sigma0 = sqrt(2))
+  res <- gaussianBDCD(y = aneelshape$z_Precipitation, viz = aneeldata[[1]], n_iterations = 1000, burn_in = 500, c = 0.35, 0, sigma0 = sqrt(2))
   expect_is(res, "list")
 })
