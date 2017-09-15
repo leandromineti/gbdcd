@@ -25,8 +25,9 @@ Usage
 library(gbdcd)
 
 data("aneeldata", package = "gbdcd")
+data("aneelshape", package = "gbdcd")
 
-target_variable <- aneeldata$target
+target_variable <- aneelshape$z_Precipitation
 neighbors <- aneeldata$connections
 
 res <- gaussianBDCD(y = target_variable, 
