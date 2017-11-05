@@ -88,7 +88,7 @@ boxplot(aneelshape$z_Precipitation ~ groups, col=colrs,
 ### Todo list
 
 -   \[x\] basic unit testing for all functions.
--   \[ \] turn all variable and function names into English.
+-   \[x\] turn all variable and function names into English.
 -   \[x\] improve README with results.
--   \[ \] improve function documentation.
+-   \[x\] improve function documentation.
 -   \[ \] publish package on CRAN.
