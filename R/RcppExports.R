@@ -3,7 +3,8 @@
 
 #' Partition of a graph given its centers
 #' 
-#' Greedy partition blah blah blah
+#' Each center in order takes up all its free neighbors. The process is repeated 
+#' until there are no more free regions.
 #' @title Graph partition
 #' @param neighbors A matrix defining a the links between the graph nodes.
 #' @param centers The desired centers to start the algorithm

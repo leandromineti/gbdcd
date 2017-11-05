@@ -18,7 +18,8 @@ a vector indicating the cluster center for each graph node.
 Partition of a graph given its centers
 }
 \details{
-Greedy partition blah blah blah
+Each center in order takes up all its free neighbors. The process is repeated 
+until there are no more free regions.
 }
 \author{
 Marcelo Costa
