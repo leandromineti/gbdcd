@@ -2,11 +2,12 @@
 output: github_document
 ---
 
-```{r, echo = FALSE, cache=TRUE}
+```{r global, echo = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-")
+  cache = TRUE,
+  message = FALSE, 
+  warning = FALSE)
 ```
 
 # gbdcd
@@ -30,7 +31,7 @@ devtools::install_github("leandromineti/gbdcd")
 
 ## Usage
 
-```{r, eval=FALSE}
+```{r results = 'hide'}
 library(gbdcd)
 
 data("aneeldata", package = "gbdcd")
@@ -39,19 +40,59 @@ data("aneelshape", package = "gbdcd")
 target_variable <- aneelshape$z_Precipitation
 neighbors <- aneeldata$connections
 
-res <- gaussianBDCD(y = target_variable, 
+out <- gaussianBDCD(y = target_variable, 
                     viz = neighbors, 
                     c = 0.35, 
-                    n_iterations = 10000, 
-                    burn_in = 5000, 
+                    n_iterations = 100000, 
+                    burn_in = 50000, 
                     mu0 = 0, 
                     sigma0 = sqrt(2))
+```
+
+## Results
+
+From the results obtained in the previous function we can look at many variables
+like: posterior distribution, proximity dendogram and the map regionalization.
+
+### Posterior distribution
+
+```{r}
+barplot(table(out$k.MCMC)/sum(table(out$k.MCMC)), col="light blue",
+        xlab="number of groups", ylab="estimated probability")
+grid()
+barplot(table(out$k.MCMC)/sum(table(out$k.MCMC)), add=T, col="light blue")
+```
+
+### Proximity dendogram
+
+```{r}
+n_cluster <- as.numeric(names(which.max(table(out$k.MCMC))))
+
+plot(out$cluster.info, ylab="d(i~j)", main="Proximity Dendrogram", xlab="", 
+     labels=aneelshape$DMU, cex=0.6)
+
+groups <- cutree(out$cluster.info, k = n_cluster)
+rect.hclust(out$cluster.info, k=n_cluster, border="red")
+```
+
+### Map regionalization
+
+```{r}
+library(RColorBrewer)
+library(spdep)
+
+colrs <- brewer.pal(n_cluster, "Set3")
+
+par(mfrow = c(1,2))
+plot(aneelshape, col=colrs[groups])
+boxplot(aneelshape$z_Precipitation ~ groups, col=colrs,
+        ylab="Precipitation", xlab="Geographical clusters")
 ```
 
 ### Todo list
 
 - [x] basic unit testing for all functions.
 - [ ] turn all variable and function names into English.
-- [ ] improve README with results.
+- [x] improve README with results.
 - [ ] improve function documentation.
 - [ ] publish package on CRAN.
