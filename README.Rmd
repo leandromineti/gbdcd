@@ -31,7 +31,7 @@ devtools::install_github("leandromineti/gbdcd")
 
 ## Usage
 
-```{r results = 'hide'}
+```{r results = 'hide', eval=F}
 library(gbdcd)
 
 data("aneeldata", package = "gbdcd")
@@ -41,7 +41,7 @@ target_variable <- aneelshape$z_Precipitation
 neighbors <- aneeldata$connections
 
 out <- gaussianBDCD(y = target_variable, 
-                    viz = neighbors, 
+                    neigh = neighbors, 
                     c = 0.35, 
                     n_iterations = 100000, 
                     burn_in = 50000, 

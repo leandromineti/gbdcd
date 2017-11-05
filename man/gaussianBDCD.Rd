@@ -4,31 +4,56 @@
 \alias{gaussianBDCD}
 \title{Gaussian BDCD}
 \usage{
-gaussianBDCD(y, viz, c = 0.35, n_iterations = 1e+06, burn_in = 5e+05,
+gaussianBDCD(y, neigh, c = 0.35, n_iterations = 1e+06, burn_in = 5e+05,
   mu0 = 0, sigma0 = sqrt(2))
 }
 \arguments{
-\item{y}{a vector of indices.}
+\item{y}{a vector specifying the target variable for each of the nodes.}
 
-\item{viz}{a matrix defining the neighbors.}
+\item{neigh}{a matrix defining the graph neighbors.}
 
-\item{c}{parameter indicating the a priori number of clusters.}
+\item{c}{parameter indicating the \emph{a priori} number of clusters.}
 
 \item{n_iterations}{number of iterations.}
 
 \item{burn_in}{number of discarded iterations.}
 
-\item{mu0}{priori.}
+\item{mu0}{\emph{a priori} mean.}
 
-\item{sigma0}{priori.}
+\item{sigma0}{\emph{a priori} standard deviation.}
 }
 \value{
-\code{list}
+a \code{list} of seven objects:
+\itemize{
+  \item mean.info: \emph{a posteriori} means and credible interval.
+  \item cluster.info: hierarchical clustering return object.
+  \item matConnections: frequency matrix indicating how many times each pair of
+  nodes was in the same cluster.
+  \item k.MCMC: a vector indicating the number of clusters in each iteration.
+  \item mean.y: target variable mean.
+  \item sd.y: target variable standard deviation.
+  \item vec.centers: center configuration for each iteration.
+}
 }
 \description{
 Implementation of the Bayesian Detection of Clusters and Discontinuities
 }
 \examples{
+library(gbdcd)
+
+data("aneeldata", package = "gbdcd")
+data("aneelshape", package = "gbdcd")
+
+target_variable <- aneelshape$z_Precipitation
+neighbors <- aneeldata$connections
+
+out <- gaussianBDCD(y = target_variable, 
+                   neigh = neighbors, 
+                   c = 0.35, 
+                   n_iterations = 100000, 
+                   burn_in = 50000, 
+                   mu0 = 0, 
+                   sigma0 = sqrt(2))
 
 }
 \author{

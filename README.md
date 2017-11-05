@@ -31,7 +31,7 @@ target_variable <- aneelshape$z_Precipitation
 neighbors <- aneeldata$connections
 
 out <- gaussianBDCD(y = target_variable, 
-                    viz = neighbors, 
+                    neigh = neighbors, 
                     c = 0.35, 
                     n_iterations = 100000, 
                     burn_in = 50000, 
