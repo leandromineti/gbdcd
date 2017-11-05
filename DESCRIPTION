@@ -7,7 +7,7 @@ Authors@R: c(
     person("Leandro", "Mineti", email = "leandromineti@gmail.com", role = c("aut", "cre")),
     person("Marcelo", "Costa", email = "macosta.est@gmail.com", role = c("aut"))
     )
-Maintainer: Who to complain to <leandromineti@gmail.com>
+Maintainer: Leandro Mineti <leandromineti@gmail.com>
 Description: Implementation of the Bayesian Detection of Clusters and Discontinuities.
 License: MIT
 Imports: 
