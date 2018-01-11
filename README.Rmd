@@ -23,6 +23,8 @@ An R package implementing the Bayesian Detection of Clusters and Discontinuities
 
 ## Installation
 
+Make sure you have Rtools installed.
+
 ```{r eval=FALSE}
 library(devtools)
 
@@ -31,7 +33,7 @@ devtools::install_github("leandromineti/gbdcd")
 
 ## Usage
 
-```{r results = 'hide', eval=F}
+```{r results = 'hide'}
 library(gbdcd)
 
 data("aneeldata", package = "gbdcd")
@@ -56,7 +58,7 @@ like: posterior distribution, proximity dendogram and the map regionalization.
 
 ### Posterior distribution
 
-```{r}
+```{r }
 barplot(table(out$k.MCMC)/sum(table(out$k.MCMC)), col="light blue",
         xlab="number of groups", ylab="estimated probability")
 grid()
@@ -65,7 +67,7 @@ barplot(table(out$k.MCMC)/sum(table(out$k.MCMC)), add=T, col="light blue")
 
 ### Proximity dendogram
 
-```{r}
+```{r }
 n_cluster <- as.numeric(names(which.max(table(out$k.MCMC))))
 
 plot(out$cluster.info, ylab="d(i~j)", main="Proximity Dendrogram", xlab="", 

@@ -12,6 +12,8 @@ An R package implementing the Bayesian Detection of Clusters and Discontinuities
 Installation
 ------------
 
+Make sure you have Rtools installed.
+
 ``` r
 library(devtools)
 
@@ -53,7 +55,7 @@ grid()
 barplot(table(out$k.MCMC)/sum(table(out$k.MCMC)), add=T, col="light blue")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-3-1.png)
 
 ### Proximity dendogram
 
@@ -67,7 +69,7 @@ groups <- cutree(out$cluster.info, k = n_cluster)
 rect.hclust(out$cluster.info, k=n_cluster, border="red")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
 ### Map regionalization
 
@@ -83,7 +85,7 @@ boxplot(aneelshape$z_Precipitation ~ groups, col=colrs,
         ylab="Precipitation", xlab="Geographical clusters")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-5-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
 ### Todo list
 
