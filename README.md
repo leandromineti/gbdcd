@@ -12,7 +12,7 @@ An R package implementing the Bayesian Detection of Clusters and Discontinuities
 Installation
 ------------
 
-Make sure you have Rtools installed.
+Make sure you have [Rtools](https://cran.r-project.org/bin/windows/Rtools/) installed.
 
 ``` r
 library(devtools)
