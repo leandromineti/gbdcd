@@ -23,6 +23,6 @@ context("Gbdcd")
 
 test_that("gbdcd function", {
   res <- gaussianBDCD(y = aneelshape$z_Precipitation, neigh = aneeldata$connections,
-                      n_iterations = 1000, burn_in = 500, c = 0.35, 0, sigma0 = sqrt(2))
+                      n_iterations = 100, burn_in = 50, c = 0.35, 0, sigma0 = sqrt(2))
   expect_is(res, "list")
 })
