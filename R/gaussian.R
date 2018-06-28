@@ -357,31 +357,12 @@ gaussianBDCD <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 5
 #'
 #' @return a \code{list} of seven objects:
 #' \itemize{
-#'   \item mydata: 
-#'   \item fit: 
-#'   \item groups: 
+#'   \item mydata: k eigenvectors.
+#'   \item fit: result of k-means on eigenvectors. 
+#'   \item groups: grouped elements.
 #' }
 #'
 #' @export
-#' 
-#' @examples
-#' library(gbdcd)
-#'
-#' data("aneeldata", package = "gbdcd")
-#' data("aneelshape", package = "gbdcd")
-#' 
-#' target_variable <- aneelshape$z_Precipitation
-#' neighbors <- aneeldata$connections
-#' 
-#' out <- gaussianBDCD(y = target_variable, 
-#'                    neigh = neighbors, 
-#'                    c = 0.35, 
-#'                    n_iterations = 100000, 
-#'                    burn_in = 50000, 
-#'                    mu0 = 0, 
-#'                    sigma0 = sqrt(2))
-#'                    
-#' clusters <-gbdcdGroups(out, k = 3)
 #'
 #' @family gbdcd
 gbdcdGroups <- function(out, k=2) {
