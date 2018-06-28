@@ -345,3 +345,60 @@ gaussianBDCD <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 5
   
   return(output)
 }
+
+#' GBDCD groups
+#' 
+#' Implement Adapted Ng-Jordan-Weiss clustering on gbdcd results
+#'
+#' @author leandromineti@gmail.com
+#'
+#' @param out output from gbdcd.
+#' @param k number of clusters
+#'
+#' @return a \code{list} of seven objects:
+#' \itemize{
+#'   \item mydata: 
+#'   \item fit: 
+#'   \item groups: 
+#' }
+#'
+#' @export
+#' 
+#' @examples
+#' library(gbdcd)
+#'
+#' data("aneeldata", package = "gbdcd")
+#' data("aneelshape", package = "gbdcd")
+#' 
+#' target_variable <- aneelshape$z_Precipitation
+#' neighbors <- aneeldata$connections
+#' 
+#' out <- gaussianBDCD(y = target_variable, 
+#'                    neigh = neighbors, 
+#'                    c = 0.35, 
+#'                    n_iterations = 100000, 
+#'                    burn_in = 50000, 
+#'                    mu0 = 0, 
+#'                    sigma0 = sqrt(2))
+#'                    
+#' clusters <-gbdcdGroups(out, k = 3)
+#'
+#' @family gbdcd
+gbdcdGroups <- function(out, k=2) {
+  S <- out$matConnections
+  S <- S/length(out$vec.centers)
+  
+  ## APPENDIX B: Adapted Ng-Jordan-Weiss algorithm
+  D <- diag(rowSums(S))
+  Daux <- diag(1/sqrt(rowSums(S)))
+  L <- Daux%*%S%*%Daux
+  ## Getting eigenvalues and eigenvectors
+  saida <- eigen(L)
+  vetores <- saida$vectors[, order(saida$values,decreasing=T)[1:k]]
+  
+  output <- list(mydata = vetores, 
+                 fit = kmeans(mydata, k),
+                 groups = fit$cluster)
+  
+  return(output)
+}

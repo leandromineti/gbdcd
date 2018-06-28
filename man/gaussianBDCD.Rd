@@ -56,6 +56,9 @@ out <- gaussianBDCD(y = target_variable,
                    sigma0 = sqrt(2))
 
 }
+\seealso{
+Other gbdcd: \code{\link{gbdcdGroups}}
+}
 \author{
 leandromineti@gmail.com
 }
