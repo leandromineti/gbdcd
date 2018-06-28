@@ -3,5 +3,6 @@ import(geoR)
 import(plyr)
 importFrom(Rcpp, evalCpp)
 export(gaussianBDCD,
+       gbdcdGroups,
        RcppFreqMatrix,
        RcppPartition)
