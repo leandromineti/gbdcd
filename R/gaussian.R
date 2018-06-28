@@ -327,12 +327,13 @@ gaussianBDCD <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 5
   # Processing frequency matrix results
   matConnections <- freq_matrix
   matConnections[lower.tri(matConnections)] <- t(matConnections)[lower.tri(matConnections)]
+  
   maximum <- max(as.vector(matConnections), na.rm=TRUE)
-  matConnections <- maximum - matConnections
-  diag(matConnections) <- maximum + 1
+  matConnections_mod <- maximum - matConnections
+  diag(matConnections_mod) <- maximum + 1
   
   # Partitioning using hierarchical clustering 
-  clusters <- hclust(as.dist(matConnections), c("single","complete")[1])
+  clusters <- hclust(as.dist(matConnections_mod), c("single","complete")[1])
   
   output <- list(mean.info    = cbind(lwr, Yhat, upr),
                 cluster.info = clusters,
