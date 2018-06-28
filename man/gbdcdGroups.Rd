@@ -13,11 +13,7 @@ gbdcdGroups(out, k = 2)
 }
 \value{
 a \code{list} of seven objects:
-\itemize{
-  \item mydata: k eigenvectors.
-  \item fit: result of k-means on eigenvectors. 
-  \item groups: grouped elements.
-}
+\item vector indicating the cluster for each element.
 }
 \description{
 Implement Adapted Ng-Jordan-Weiss clustering on gbdcd results

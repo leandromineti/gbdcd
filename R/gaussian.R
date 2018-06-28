@@ -356,11 +356,7 @@ gaussianBDCD <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 5
 #' @param k number of clusters
 #'
 #' @return a \code{list} of seven objects:
-#' \itemize{
-#'   \item mydata: k eigenvectors.
-#'   \item fit: result of k-means on eigenvectors. 
-#'   \item groups: grouped elements.
-#' }
+#' \item vector indicating the cluster for each element.
 #'
 #' @export
 #'
@@ -374,12 +370,10 @@ gbdcdGroups <- function(out, k=2) {
   Daux <- diag(1/sqrt(rowSums(S)))
   L <- Daux%*%S%*%Daux
   ## Getting eigenvalues and eigenvectors
-  saida <- eigen(L)
-  vetores <- saida$vectors[, order(saida$values,decreasing=T)[1:k]]
+  eigen_output <- eigen(L)
+  eigen_results <- eigen_output$vectors[, order(eigen_output$values,decreasing=T)[1:k]]
   
-  output <- list(mydata = vetores, 
-                 fit = kmeans(mydata, k),
-                 groups = fit$cluster)
+  fit = kmeans(eigen_results, k)
   
-  return(output)
+  return(fit$cluster)
 }
