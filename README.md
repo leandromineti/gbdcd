@@ -7,7 +7,10 @@ gbdcd
 Overview
 --------
 
-An R package implementing the Bayesian Detection of Clusters and Discontinuities.
+An R package implementing the Bayesian Detection of Clusters and Discontinuities. You can find a use case and other 
+references at:
+
+> Costa, M. A., Mineti, L. B., Mayrink, V. D., & Lopes, A. L. M. (2018). Bayesian detection of clusters in efficiency score maps: an application to Brazilian energy regulation. Applied Mathematical Modelling.
 
 Installation
 ------------
