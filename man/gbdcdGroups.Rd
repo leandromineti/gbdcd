@@ -12,15 +12,16 @@ gbdcdGroups(out, k = 2)
 \item{k}{number of clusters}
 }
 \value{
-a \code{list} of seven objects:
-\item vector indicating the cluster for each element.
+a \code{vector} indicating the cluster for each element.
 }
 \description{
 Implement Adapted Ng-Jordan-Weiss clustering on gbdcd results
 }
 \seealso{
-Other gbdcd: \code{\link{gaussianBDCD}}
+Other gbdcd: 
+\code{\link{gaussianBDCD}()}
 }
 \author{
 leandromineti@gmail.com
 }
+\concept{gbdcd}
