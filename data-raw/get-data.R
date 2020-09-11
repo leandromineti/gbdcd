@@ -1,14 +1,11 @@
-library(rgdal)  # Geospatial Data Abstraction Library 
-library(dplyr)
+shape <- rgdal::readOGR("data-raw/", layer = "distribuidoras", encoding = "utf-8")
 
-shape <- readOGR("data-raw/", layer="newDistribuidoras", encoding="utf-8")
+df_dea <- read.csv("./data-raw/aneel-407-bias-corrected.csv", encoding = "latin-1")
+df_env <- read.csv("./data-raw/aneel-environmental-data.csv", encoding = "latin-1")
 
-d1 <- read.csv("./data-raw/ANEEL407_Bias_Corrected.csv")  # Efficiency variables.
-d2 <- read.csv("./data-raw/ANEEL_Ambientais_NEW.csv")  # Environment variables.
+df_full <- dplyr::full_join(df_dea, df_env, by = c("Codigo" = "d_Code"))
 
-dados <- full_join(d1, d2,  by = c("Codigo" = "d_Code"))
+shape <- merge(shape, df_full, by.x = "Codig", by.y = "Codigo", all.x = FALSE)
+aneelshape <- subset(shape, Codig != "D05")
 
-shape <- merge(shape, dados, by.x = "Codig", by.y="Codigo", all.x=FALSE)
-aneelshape <- subset(shape, Codig != "D05") ## Retira "Roraima"
-
-devtools::use_data(aneelshape, overwrite = FALSE)
+usethis::use_data(aneelshape, overwrite = TRUE)
