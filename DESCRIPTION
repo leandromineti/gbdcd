@@ -1,6 +1,6 @@
 Package: gbdcd
 Type: Package
-Title: Implementation of the Bayesian Detection of Clusters and Discontinuities.
+Title: Implementation of the Bayesian Detection of Clusters and Discontinuities
 Version: 0.3
 Date: 2020-09-11
 Authors@R: c(
@@ -8,7 +8,7 @@ Authors@R: c(
     person("Marcelo", "Costa", email = "macosta.est@gmail.com", role = "aut")
     )
 Description: Implementation of the Bayesian Detection of Clusters and Discontinuities.
-License: MIT
+License: MIT + file LICENSE
 Imports: 
     Rcpp,
     geoR,
