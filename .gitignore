@@ -6,3 +6,5 @@ src/*.o
 src/*.so
 src/*.dll
 gbdcd.Rcheck/*
+data-raw/*.csv
+data-raw/distribuidoras*
