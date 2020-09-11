@@ -1,1 +1,3 @@
-^README_cache
+^README_cache$
+^README_files$
+^gbdcd.Rcheck$
