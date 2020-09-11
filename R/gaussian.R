@@ -1,5 +1,5 @@
 #' Gaussian BDCD
-#' 
+#'
 #' Implementation of the Bayesian Detection of Clusters and Discontinuities
 #'
 #' @author leandromineti@gmail.com
@@ -16,8 +16,8 @@
 #' \itemize{
 #'   \item mean.info: \emph{a posteriori} means and credible interval.
 #'   \item cluster.info: hierarchical clustering return object.
-#'   \item matConnections: frequency matrix indicating how many times each pair of
-#'   nodes was in the same cluster.
+#'   \item matConnections: frequency matrix indicating how many times each
+#'   pair of nodes was in the same cluster.
 #'   \item k.MCMC: a vector indicating the number of clusters in each iteration.
 #'   \item mean.y: target variable mean.
 #'   \item sd.y: target variable standard deviation.
@@ -25,16 +25,16 @@
 #' }
 #'
 #' @export
-#' 
+#'
 #' @examples
 #' library(gbdcd)
 #'
 #' data("aneeldata", package = "gbdcd")
 #' data("aneelshape", package = "gbdcd")
-#' 
+#'
 #' target_variable <- aneelshape$z_Precipitation
 #' neighbors <- aneeldata$connections
-#' 
+#'
 #' out <- gaussianBDCD(y = target_variable, 
 #'                    neigh = neighbors, 
 #'                    c = 0.35, 
@@ -46,19 +46,19 @@
 #' @family gbdcd
 gaussianBDCD <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 500000,
                          mu0=0, sigma0=sqrt(2)) {
-  
+
   # Normalization of the target variable
   mean.y <- mean(y)
   sd.y <- sd(y)
   y <- (y - mean.y)/sd.y
-  
+
   N <- length(y)
   Probs <- (1-c)^(1:N)
   Probs <- Probs/sum(Probs)
   mean.k <- round(sum((1:N)*Probs))  # A priori mean for the number of clusters.
-  
+
   sig2ma0 <- sigma0^2 # A priori for the means in each group
-  
+
   # Start-up variables
   k_vector <- rep(NA, n_iterations)
   v_sigma2 <- rep(NA, n_iterations)
@@ -70,20 +70,21 @@ gaussianBDCD <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 5
   vec.means <- rep(NA, N)
   centers <- sample.int(N, size = mean.k, replace = FALSE) 
   partitions <- RcppPartition(neigh, centers)
-  
+
   # Initial cluster configuration
   means <- aggregate(y ~ partitions, FUN=mean)
   vec.means[means$partitions] <- means$y
   sigma2 <- sum( (y - vec.means[partitions])^2 )/(N-length(centers))
-  
+
   # Initialize progress bar
-  pb <- txtProgressBar(min = 0, max = n_iterations, char= "=", title= "progress bar")
+  pb <- txtProgressBar(min = 0, max = n_iterations, 
+		       char= "=", title= "progress bar")
   
   ## Beginning of the chain ---------------------------------------------------
   for(i in 1:n_iterations) {
     # Chooses the step considering the present state of the clusters.
     k <- length(centers)
-    
+
     if(k == N) {
       step <- sample(c("Death", "Update", "Switch"), size=1, prob = c(0.8, 0.1, 0.1))
     } else { 
@@ -347,7 +348,7 @@ gaussianBDCD <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 5
 }
 
 #' GBDCD groups
-#' 
+#'
 #' Implement Adapted Ng-Jordan-Weiss clustering on gbdcd results
 #'
 #' @author leandromineti@gmail.com
@@ -355,8 +356,7 @@ gaussianBDCD <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 5
 #' @param out output from gbdcd.
 #' @param k number of clusters
 #'
-#' @return a \code{list} of seven objects:
-#' \item vector indicating the cluster for each element.
+#' @return a \code{vector} indicating the cluster for each element.
 #'
 #' @export
 #'
@@ -364,16 +364,27 @@ gaussianBDCD <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 5
 gbdcdGroups <- function(out, k=2) {
   S <- out$matConnections
   S <- S/length(out$vec.centers)
-  
-  ## APPENDIX B: Adapted Ng-Jordan-Weiss algorithm
-  D <- diag(rowSums(S))
-  Daux <- diag(1/sqrt(rowSums(S)))
-  L <- Daux%*%S%*%Daux
-  ## Getting eigenvalues and eigenvectors
+
+# Appendix B: Adapted Ng-Jordan-Weiss algorithm
+
+  diag_aux <- diag(1/sqrt(rowSums(S)))
+  L <- diag_aux%*%S%*%diag_aux
+  # Getting eigenvalues and eigenvectors
   eigen_output <- eigen(L)
   eigen_results <- eigen_output$vectors[, order(eigen_output$values,decreasing=T)[1:k]]
-  
+
   fit = kmeans(eigen_results, k)
-  
+
   return(fit$cluster)
 }
+
+# Clean up when the package is unloaded
+.onUnload <- function (libpath) {
+  library.dynam.unload("gbdcd", libpath)
+}
+
+# Some needed roxygen2 tags
+#' @useDynLib gbdcd
+#' @importFrom Rcpp sourceCpp
+NULL
+#> NULL

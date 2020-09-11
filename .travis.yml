@@ -1,16 +1,9 @@
-language: R
-r: 
-  - release
-  - devel
-sudo: false
-warnings_are_errors: false
+language: r
+warnings_are_errors: true
+sudo: required
 
 r_packages:
   - covr
   
-before_install:
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-
 after_success:
   - Rscript -e 'library(covr); codecov()'

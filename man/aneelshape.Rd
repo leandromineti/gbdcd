@@ -4,7 +4,9 @@
 \name{aneelshape}
 \alias{aneelshape}
 \title{ANEEL database on efficiency scores, environmental and geographical data.}
-\format{An object of class \code{SpatialPolygonsDataFrame} with 57 rows and 151 columns.}
+\format{
+An object of class \code{data.frame} with 57 rows and 151 columns.
+}
 \usage{
 data("aneelshape", package = "gbdcd")
 }

@@ -4,8 +4,15 @@
 \alias{gaussianBDCD}
 \title{Gaussian BDCD}
 \usage{
-gaussianBDCD(y, neigh, c = 0.35, n_iterations = 1e+06, burn_in = 5e+05,
-  mu0 = 0, sigma0 = sqrt(2))
+gaussianBDCD(
+  y,
+  neigh,
+  c = 0.35,
+  n_iterations = 1e+06,
+  burn_in = 5e+05,
+  mu0 = 0,
+  sigma0 = sqrt(2)
+)
 }
 \arguments{
 \item{y}{a vector specifying the target variable for each of the nodes.}
@@ -27,8 +34,8 @@ a \code{list} of seven objects:
 \itemize{
   \item mean.info: \emph{a posteriori} means and credible interval.
   \item cluster.info: hierarchical clustering return object.
-  \item matConnections: frequency matrix indicating how many times each pair of
-  nodes was in the same cluster.
+  \item matConnections: frequency matrix indicating how many times each
+  pair of nodes was in the same cluster.
   \item k.MCMC: a vector indicating the number of clusters in each iteration.
   \item mean.y: target variable mean.
   \item sd.y: target variable standard deviation.
@@ -57,8 +64,10 @@ out <- gaussianBDCD(y = target_variable,
 
 }
 \seealso{
-Other gbdcd: \code{\link{gbdcdGroups}}
+Other gbdcd: 
+\code{\link{gbdcdGroups}()}
 }
 \author{
 leandromineti@gmail.com
 }
+\concept{gbdcd}

@@ -4,7 +4,9 @@
 \name{aneeldata}
 \alias{aneeldata}
 \title{ANEEL database on efficiency scores.}
-\format{An object of class \code{list} of length 2.}
+\format{
+An object of class \code{list} of length 2.
+}
 \usage{
 data("aneeldata", package = "gbdcd")
 }
