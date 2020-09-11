@@ -10,9 +10,9 @@ Authors@R: c(
 Description: Implementation of the Bayesian Detection of Clusters and Discontinuities.
 License: MIT
 Imports: 
-  Rcpp (>= 0.12.12),
-  geoR,
-  plyr
+    Rcpp,
+    geoR,
+    plyr
 Suggests:
   testthat
 LinkingTo: 
