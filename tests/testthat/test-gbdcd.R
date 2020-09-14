@@ -1,6 +1,6 @@
 context("Gaussian BDCD")
 
-context("RcppArma functions")
+context("RcppArmadillo functions")
 
 test_that("Frequency matrix", {
   t <- c(1:64)
@@ -22,7 +22,7 @@ test_that("Partitioning", {
 context("Gbdcd")
 
 test_that("gbdcd function", {
-  res <- gaussianBDCD(y = aneelshape$z_Precipitation, neigh = aneeldata$connections,
+  res <- gbdcd(y = aneelshape$z_Precipitation, neigh = aneeldata$connections,
                       n_iterations = 100, burn_in = 50, c = 0.35, 0, sigma0 = sqrt(2))
   expect_is(res, "list")
 })
