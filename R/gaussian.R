@@ -45,8 +45,13 @@
 #'   sigma_0 = sqrt(2)
 #' )
 #' @family gbdcd
-gbdcd <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 500000,
-                         mu0 = 0, sigma_0 = sqrt(2)) {
+gbdcd <- function(y,
+                  neigh,
+                  c = 0.35,
+                  n_iterations = 1000000,
+                  burn_in = 500000,
+                  mu0 = 0,
+                  sigma_0 = sqrt(2)) {
 
   # Normalization of the target variable
   mean_y <- mean(y)
@@ -54,7 +59,7 @@ gbdcd <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 500000,
   y <- (y - mean_y) / sd_y
 
   n <- length(y)
-  prob_dist <- (1 - c) ^ (1:n)
+  prob_dist <- (1 - c)^(1:n)
   prob_dist <- prob_dist / sum(prob_dist)
   mean_k <- round(sum((1:n) * prob_dist))
 
@@ -314,7 +319,7 @@ gbdcd <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 500000,
     setTxtProgressBar(pb, i, "running Reversible Jump...")
 
     # Frequency matrix data
-    if (i > burn_in) freq_matrix <- freq_matrix + RcppFreqMatrix(partitions)
+    if (i > burn_in) freq_matrix <- freq_matrix + rcpp_freqmatrix(partitions)
   }
 
   Sys.sleep(1)
@@ -355,6 +360,311 @@ gbdcd <- function(y, neigh, c = 0.35, n_iterations = 1000000, burn_in = 500000,
     mean_y = mean_y,
     sd_y = sd_y,
     vec.centers = v_centers
+  )
+
+  return(output)
+}
+
+#' Gaussian BDCD regression
+#'
+#' Implementation of the Bayesian Detection of Clusters and Discontinuities
+#'
+#' @author leandromineti@gmail.com
+#'
+#' @param y a vector specifying the target variable for each of the nodes.
+#' @param x a matrix with the independent variables.
+#' @param viz a matrix defining the graph neighbors.
+#' @param n_iterations number of iterations.
+#' @param burn_in number of discarded iterations.
+#' @param c parameter indicating the \emph{a priori} number of clusters.
+#' @param prior_coeffs_mu \emph{a priori} mean for regresion coefficients.
+#' @param prior_sigma \emph{a priori} standard deviation.
+#' @param lambda regularization parameter.
+#' @param plot plot the results. Default = FALSE.
+#'
+#' @return a \code{list} of seven objects:
+#' \itemize{
+#'   \item mean.info: \emph{a posteriori} means and credible interval.
+#'   \item cluster.info: hierarchical clustering return object.
+#'   \item matConnections: frequency matrix indicating how many times each
+#'   pair of nodes was in the same cluster.
+#'   \item k.MCMC: a vector indicating the number of clusters in each iteration.
+#'   \item mean_y: target variable mean.
+#'   \item sd_y: target variable standard deviation.
+#'   \item vec.centers: center configuration for each iteration.
+#' }
+#'
+#' @export
+#'
+#' @family gbdcd
+gbdcd_regression <- function(y,
+                             x,
+                             viz,
+                             n_iterations = 100000,
+                             burn_in = 50000,
+                             c = 0.35,
+                             prior_coeffs_mu = rep(0, 2),
+                             prior_sigma = sqrt(2),
+                             lambda = 0.001,
+                             plot = F) {
+
+  # Define important simulation parameters
+  n_regions <- length(y)
+  sigma2 <- prior_sigma^2
+  a_0 <- 2.1 # Inverse Gamma shape parameter
+  b_0 <- 1.1 # Inverse Gamma scale parameter
+
+  n_coeffs <- dim(x)[2] # Number of estimated coefficients
+  n_coeffs_names <- paste0("coeff_", 0:(n_coeffs - 1)) # Coefficient names
+
+  # Covariancia a priori dos betas (falta multiplicar pelo sigma2)
+  inv_lambda_identity_prior <- diag(rep(1 / lambda, 2))
+
+  # Bookkeeping variables
+  vec_k <- rep(NA, n_iterations)
+  vec_sigma2 <- rep(NA, n_iterations)
+  vec_steps <- rep(NA, n_iterations)
+  vec_centers <- rep(NA, n_iterations)
+  vec_accept <- rep(0, n_iterations)
+  mat_freq <- matrix(0, n_regions, n_regions)
+  mat_coeffs <- matrix(NA, n_regions, ncol = n_coeffs)
+  mat_coeffs_hat <- array(NA, dim = c(n_regions, n_coeffs, n_iterations), dimnames = list(NULL, n_coeffs_names, NULL))
+  cluster_centers <- sample.int(n_regions, size = 2, replace = FALSE)
+  cluster_partitions <- rcpp_partition(viz, cluster_centers)
+
+  # Inicializa com os mesmos betas para todos os clusters
+  mat_coeffs[cluster_centers, ] <- 0
+
+  # Start execution bar
+  pb <- txtProgressBar(min = 0, max = n_iterations, char = "=", title = "progress bar")
+
+  # Start the Markov Chain Monte Carlo simulation
+  for (i in 1:n_iterations)
+  {
+    k <- length(cluster_centers) # Number of cluster centers on the current state
+
+    # Select step type
+    if (k == 1) {
+      step_choice <- sample(c("birth", "death", "update"), size = 1, prob = c(0.8, 0, 0.2))
+    } else if (k == n_regions) {
+      step_choice <- sample(c("birth", "death", "update"), size = 1, prob = c(0, 0.8, 0.2))
+    } else {
+      step_choice <- sample(c("birth", "death", "update"), size = 1, prob = c(0.4, 0.4, 0.2))
+    }
+
+    # Define birth step
+    if (step_choice == "birth") {
+
+      # Select potential new cluster center and update cluster configuration
+      new_center <- sample((1:n_regions)[!((1:n_regions) %in% cluster_centers)], size = 1)
+      new_cluster_centers <- append(cluster_centers, new_center,
+        after = sample(0:length(cluster_centers), size = 1)
+      )
+      new_cluster_partitions <- rcpp_partition(viz, new_cluster_centers)
+      y_cluster <- subset(y, new_cluster_partitions == new_center)
+      x_cluster <- subset(x, new_cluster_partitions == new_center)
+
+      # Propose regression coefficients for the new cluster
+      auxiliar_proposed <- solve(crossprod(x_cluster, x_cluster) + lambda * diag(2))
+      coeffs_mean_proposed <- auxiliar_proposed %*% crossprod(x_cluster, y_cluster)
+      coeffs_cov_proposed <- sigma2 * auxiliar_proposed
+
+      mat_coeffs[new_center, ] <- mvtnorm::rmvnorm(1,
+        mean = coeffs_mean_proposed,
+        sigma = coeffs_cov_proposed
+      )
+
+      phi <- mvtnorm::dmvnorm(mat_coeffs[new_center, ],
+        mean = coeffs_mean_proposed,
+        sigma = coeffs_cov_proposed,
+        log = TRUE
+      )
+
+      phi_k_plus_1 <- mvtnorm::dmvnorm(mat_coeffs[new_center, ],
+        mean = prior_coeffs_mu,
+        sigma = sigma2 * inv_lambda_identity_prior,
+        log = TRUE
+      )
+
+      # Define likelihood ratio and step acceptance probability
+      llk <- sum(dnorm(y,
+        mean = rowSums(mat_coeffs[cluster_partitions, ] * x),
+        sd = sqrt(sigma2), log = TRUE
+      ))
+
+      llk_plus_1 <- sum(dnorm(y,
+        mean = rowSums(mat_coeffs[new_cluster_partitions, ] * x),
+        sd = sqrt(sigma2), log = TRUE
+      ))
+
+      llk_ratio <- exp(llk_plus_1 - llk)
+      accept_prob <- llk_ratio * (1 - c) * 1 * exp(phi_k_plus_1 - phi)
+
+      if (is.na(accept_prob)) {
+        accept_prob <- 0
+      } # Handle errors on small probabilities
+
+      alpha <- min(1, accept_prob)
+
+      if (runif(1) < alpha) {
+        cluster_centers <- new_cluster_centers
+        cluster_partitions <- new_cluster_partitions
+        vec_accept[i] <- 1
+      }
+    }
+
+    # Define death step
+    if (step_choice == "death") {
+
+      # Select potential cluster center to remove and update cluster configuration
+      center <- sample(cluster_centers, 1)
+      new_cluster_centers <- cluster_centers[-which(cluster_centers == center)]
+      new_cluster_partitions <- rcpp_partition(viz, new_cluster_centers)
+      y_cluster <- subset(y, cluster_partitions == center)
+      x_cluster <- subset(x, cluster_partitions == center)
+
+      # Calculate coefficient distribution parameters for the proposed configuration
+      auxiliar_proposed <- solve(crossprod(x_cluster, x_cluster) + lambda * diag(2))
+      coeffs_mean_proposed <- auxiliar_proposed %*% crossprod(x_cluster, y_cluster)
+      coeffs_cov_proposed <- sigma2 * auxiliar_proposed
+
+      phi <- mvtnorm::dmvnorm(mat_coeffs[center, ],
+        mean = coeffs_mean_proposed,
+        sigma = coeffs_cov_proposed,
+        log = TRUE
+      )
+
+      phi_k_minus_1 <- mvtnorm::dmvnorm(mat_coeffs[center, ],
+        mean = prior_coeffs_mu,
+        sigma = sigma2 * inv_lambda_identity_prior,
+        log = TRUE
+      )
+
+      # Define likelihood ratio and step acceptance probability
+      llk <- sum(dnorm(y,
+        mean = rowSums(mat_coeffs[cluster_partitions, ] * x),
+        sd = sqrt(sigma2), log = TRUE
+      ))
+
+      llk_minus_1 <- sum(dnorm(y,
+        mean = rowSums(mat_coeffs[new_cluster_partitions, ] * x),
+        sd = sqrt(sigma2), log = TRUE
+      ))
+
+      llk_ratio <- exp(llk_minus_1 - llk)
+      accept_prob <- llk_ratio * (1 / (1 - c)) * 1 * exp(phi - phi_k_minus_1)
+
+      if (is.na(accept_prob)) {
+        accept_prob <- 0
+      } # Handle errors on small probabilities
+
+      alpha <- min(1, accept_prob)
+
+      if (runif(1) < alpha) {
+        cluster_centers <- new_cluster_centers
+        cluster_partitions <- new_cluster_partitions
+        vec_accept[i] <- 1
+      }
+    }
+
+    # Define update step
+    if (step_choice == "update") {
+
+      # Update regression coefficients
+      for (center_update in cluster_centers) {
+
+        # Select the data points of an specific cluster
+        y_cluster <- subset(y, cluster_partitions == center_update)
+        x_cluster <- subset(x, cluster_partitions == center_update)
+
+        # Update regression coefficients on an specific cluster
+        auxiliar_proposed <- solve(crossprod(x_cluster, x_cluster) + lambda * diag(2))
+        coeffs_mean_proposed <- auxiliar_proposed %*% crossprod(x_cluster, y_cluster)
+        coeffs_cov_proposed <- sigma2 * auxiliar_proposed
+
+        mat_coeffs[center_update, ] <- mvtnorm::rmvnorm(1,
+          mean = coeffs_mean_proposed,
+          sigma = coeffs_cov_proposed
+        )
+      }
+
+      # Update variance parameter
+      a_n <- a_0 + n_regions / 2
+      b_n <- b_0 + sum((y - rowSums(mat_coeffs[cluster_partitions, ] * x))^2) / 2
+      sigma2 <- 1 / rgamma(1, shape = a_n, rate = b_n)
+
+      vec_accept[i] <- 1
+    }
+
+    # Record chain state
+    vec_k[i] <- length(cluster_centers)
+    vec_sigma2[i] <- sigma2
+    vec_steps[i] <- step_choice
+    mat_coeffs_hat[, , i] <- mat_coeffs[cluster_partitions, ]
+    vec_centers[i] <- paste(cluster_centers, collapse = ";")
+
+    # Set progress bar
+    setTxtProgressBar(pb, i)
+
+    # Fill 'connection' frequency matrix
+    if (i > burn_in) mat_freq <- mat_freq + rcpp_freqmatrix(cluster_partitions)
+  }
+
+  # End of MCMC iterations
+  Sys.sleep(1)
+  close(pb)
+
+  # Chain results processing - remove burn-in
+  seq.burn <- -(1:burn_in)
+  vec_k <- vec_k[seq.burn]
+  vec_sigma2 <- vec_sigma2[seq.burn]
+  vec_steps <- vec_steps[seq.burn]
+  mat_coeffs_hat <- mat_coeffs_hat[, , seq.burn]
+  vec_accept <- vec_accept[seq.burn]
+  vec_centers <- vec_centers[seq.burn]
+
+  # Processing 'connection' frequency matrix
+  mat_connections <- mat_freq
+  mat_connections[lower.tri(mat_connections)] <- t(mat_connections)[lower.tri(mat_connections)]
+  maximum <- max(as.vector(mat_connections), na.rm = TRUE)
+  mat_connections <- maximum - mat_connections
+  diag(mat_connections) <- maximum + 1
+  clusters <- hclust(as.dist(mat_connections), c("single", "complete")[1])
+
+  # Plot results
+  if (plot == TRUE) {
+    plot(1:length(vec_k), vec_k, type = "l", xlab = "step", main = "k-MCMC")
+
+    barplot(table(vec_k) / sum(table(vec_k)),
+      col = "light blue",
+      main = "k-Posteriori"
+    )
+
+    cat("\n Estimates for k: \n")
+    print(summary(vec_k))
+    print(quantile(vec_k, probs = c(0.05, 0.95)))
+
+    cat("Step acceptance frequency: \n \n")
+    print(aggregate(vec_accept ~ vec_steps, FUN = mean))
+
+    cat("\n Estimates for sigma2: \n")
+    print(summary(vec_sigma2))
+    print(quantile(vec_sigma2, probs = c(0.05, 0.95)))
+
+    plot(clusters,
+      ylab = "proximity",
+      main = "Proximity Dendogram",
+      xlab = "", cex = 0.7
+    )
+  }
+
+  output <- list(
+    coeff.info = mat_coeffs_hat,
+    cluster.info = clusters,
+    matConexoes = mat_connections,
+    k.MCMC = vec_k,
+    vec.centros = vec_centers,
+    vec.sigma2 = vec_sigma2
   )
 
   return(output)

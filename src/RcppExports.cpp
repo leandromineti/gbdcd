@@ -18,21 +18,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// RcppFreqMatrix
-Rcpp::NumericMatrix RcppFreqMatrix(const Rcpp::NumericVector& partitions);
-RcppExport SEXP _gbdcd_RcppFreqMatrix(SEXP partitionsSEXP) {
+// rcpp_freqmatrix
+Rcpp::NumericMatrix rcpp_freqmatrix(const Rcpp::NumericVector& partitions);
+RcppExport SEXP _gbdcd_rcpp_freqmatrix(SEXP partitionsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type partitions(partitionsSEXP);
-    rcpp_result_gen = Rcpp::wrap(RcppFreqMatrix(partitions));
+    rcpp_result_gen = Rcpp::wrap(rcpp_freqmatrix(partitions));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_gbdcd_rcpp_partition", (DL_FUNC) &_gbdcd_rcpp_partition, 2},
-    {"_gbdcd_RcppFreqMatrix", (DL_FUNC) &_gbdcd_RcppFreqMatrix, 1},
+    {"_gbdcd_rcpp_freqmatrix", (DL_FUNC) &_gbdcd_rcpp_freqmatrix, 1},
     {NULL, NULL, 0}
 };
 

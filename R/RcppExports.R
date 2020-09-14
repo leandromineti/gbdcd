@@ -21,7 +21,7 @@ rcpp_partition <- function(neighbors, centers) {
 #' @param partitions A vector indicating the cluster center for each graph node.
 #' @return a matrix.
 #' @author Leandro Mineti
-RcppFreqMatrix <- function(partitions) {
-    .Call('_gbdcd_RcppFreqMatrix', PACKAGE = 'gbdcd', partitions)
+rcpp_freqmatrix <- function(partitions) {
+    .Call('_gbdcd_rcpp_freqmatrix', PACKAGE = 'gbdcd', partitions)
 }
 

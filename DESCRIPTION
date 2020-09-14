@@ -12,7 +12,8 @@ License: MIT + file LICENSE
 Imports: 
     Rcpp,
     geoR,
-    plyr
+    plyr,
+    mvtnorm
 Depends: R (>= 3.5.0)
 Suggests:
   testthat
