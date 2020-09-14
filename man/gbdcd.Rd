@@ -11,7 +11,7 @@ gbdcd(
   n_iterations = 1e+06,
   burn_in = 5e+05,
   mu0 = 0,
-  sigma0 = sqrt(2)
+  sigma_0 = sqrt(2)
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ gbdcd(
 
 \item{mu0}{\emph{a priori} mean.}
 
-\item{sigma0}{\emph{a priori} standard deviation.}
+\item{sigma_0}{\emph{a priori} standard deviation.}
 }
 \value{
 a \code{list} of seven objects:
@@ -37,8 +37,8 @@ a \code{list} of seven objects:
   \item matConnections: frequency matrix indicating how many times each
   pair of nodes was in the same cluster.
   \item k.MCMC: a vector indicating the number of clusters in each iteration.
-  \item mean.y: target variable mean.
-  \item sd.y: target variable standard deviation.
+  \item mean_y: target variable mean.
+  \item sd_y: target variable standard deviation.
   \item vec.centers: center configuration for each iteration.
 }
 }
@@ -61,7 +61,7 @@ out <- gbdcd(
   n_iterations = 100000,
   burn_in = 50000,
   mu0 = 0,
-  sigma0 = sqrt(2)
+  sigma_0 = sqrt(2)
 )
 }
 \seealso{

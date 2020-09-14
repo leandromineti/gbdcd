@@ -19,7 +19,7 @@
 //' @return a vector indicating the cluster center for each graph node.
 //' @author Marcelo Costa
 // [[Rcpp::export]]
-Rcpp::NumericVector RcppPartition(const arma::mat & neighbors, const Rcpp::NumericVector & centers) {
+Rcpp::NumericVector rcpp_partition(const arma::mat & neighbors, const Rcpp::NumericVector & centers) {
   arma::mat viz = neighbors;
   Rcpp::NumericVector center = centers;
   int n_vizrows = viz.n_rows;

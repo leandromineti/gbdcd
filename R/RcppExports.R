@@ -10,8 +10,8 @@
 #' @param centers The desired centers to start the algorithm
 #' @return a vector indicating the cluster center for each graph node.
 #' @author Marcelo Costa
-RcppPartition <- function(neighbors, centers) {
-    .Call('_gbdcd_RcppPartition', PACKAGE = 'gbdcd', neighbors, centers)
+rcpp_partition <- function(neighbors, centers) {
+    .Call('_gbdcd_rcpp_partition', PACKAGE = 'gbdcd', neighbors, centers)
 }
 
 #' Generate frequency matrix
