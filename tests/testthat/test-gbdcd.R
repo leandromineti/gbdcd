@@ -4,7 +4,7 @@ context("RcppArmadillo functions")
 
 test_that("Frequency matrix", {
   t <- c(1:64)
-  dt <- RcppFreqMatrix(t)
+  dt <- rcpp_freqmatrix(t)
   expect_is(dt, "matrix")
   expect_equal(nrow(dt), 64)
   expect_equal(ncol(dt), 64)

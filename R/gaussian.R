@@ -319,7 +319,7 @@ gbdcd <- function(y,
     setTxtProgressBar(pb, i, "running Reversible Jump...")
 
     # Frequency matrix data
-    if (i > burn_in) freq_matrix <- freq_matrix + RcppFreqMatrix(partitions)
+    if (i > burn_in) freq_matrix <- freq_matrix + rcpp_freqmatrix(partitions)
   }
 
   Sys.sleep(1)
