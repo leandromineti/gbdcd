@@ -2,5 +2,6 @@
 
 export(gbdcd)
 export(gbdcdGroups)
+export(gbdcd_regression)
 importFrom(Rcpp,sourceCpp)
 useDynLib(gbdcd)

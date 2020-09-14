@@ -81,7 +81,7 @@ Rcpp::NumericVector rcpp_partition(const arma::mat & neighbors, const Rcpp::Nume
 //' @return a matrix.
 //' @author Leandro Mineti
 // [[Rcpp::export]]
-Rcpp::NumericMatrix RcppFreqMatrix(const Rcpp::NumericVector & partitions) {
+Rcpp::NumericMatrix rcpp_freqmatrix(const Rcpp::NumericVector & partitions) {
   Rcpp::NumericVector part = partitions;
   int n = part.size(), mat_index, mat_test;
   arma::mat mat = arma::zeros(n,n);

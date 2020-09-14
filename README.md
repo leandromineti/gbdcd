@@ -36,13 +36,13 @@ data("aneelshape", package = "gbdcd")
 target_variable <- aneelshape$z_Precipitation
 neighbors <- aneeldata$connections
 
-out <- gaussianBDCD(y = target_variable, 
-                    neigh = neighbors, 
-                    c = 0.35, 
-                    n_iterations = 100000, 
-                    burn_in = 50000, 
-                    mu0 = 0, 
-                    sigma0 = sqrt(2))
+out <- gbdcd(y = target_variable, 
+	      neigh = neighbors, 
+	      c = 0.35, 
+	      n_iterations = 100000, 
+	      burn_in = 50000, 
+	      mu0 = 0, 
+	      sigma0 = sqrt(2))
 ```
 
 Results
@@ -91,10 +91,3 @@ boxplot(aneelshape$z_Precipitation ~ groups, col=colrs,
 
 ![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
-### Todo list
-
--   \[x\] basic unit testing for all functions.
--   \[x\] turn all variable and function names into English.
--   \[x\] improve README with results.
--   \[x\] improve function documentation.
--   \[ \] publish package on CRAN.

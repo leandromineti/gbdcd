@@ -19,6 +19,7 @@ Implement Adapted Ng-Jordan-Weiss clustering on gbdcd results
 }
 \seealso{
 Other gbdcd: 
+\code{\link{gbdcd_regression}()},
 \code{\link{gbdcd}()}
 }
 \author{
