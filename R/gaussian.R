@@ -113,26 +113,26 @@ gbdcd <- function(y,
       # Insert the selected center into the vector of centers
       new_centers <- append(centers, new_center, after = sample(0:length(centers), size = 1))
 
-      new.partitions <- rcpp_partition(neigh, new_centers)
-      new.means <- aggregate(y ~ new.partitions, FUN = mean)
-      new.media <- subset(new.means, new.partitions == new_center)$y
-      n.prop <- sum(new.partitions == new_center)
+      new_partitions <- rcpp_partition(neigh, new_centers)
+      new_means <- aggregate(y ~ new_partitions, FUN = mean)
+      new_mean <- subset(new_means, new_partitions == new_center)$y
+      n_prop <- sum(new_partitions == new_center)
 
-      mean.proposed <- (sigma2 / (n.prop * sigma2_0 + sigma2)) * mu0 +
-        (n.prop * sigma2_0 / (n.prop * sigma2_0 + sigma2)) * new.media
+      mean_proposed <- (sigma2 / (n_prop * sigma2_0 + sigma2)) * mu0 +
+        (n_prop * sigma2_0 / (n_prop * sigma2_0 + sigma2)) * new_mean
 
-      sigma.proposed <- sqrt(1 / ((1 / sigma2_0) + (n.prop / sigma2)))
+      sigma_proposed <- sqrt(1 / ((1 / sigma2_0) + (n_prop / sigma2)))
 
-      vec_means[new_center] <- rnorm(1, mean = mean.proposed, sd = sigma.proposed)
+      vec_means[new_center] <- rnorm(1, mean = mean_proposed, sd = sigma_proposed)
 
-      phi <- dnorm(vec_means[new_center], mean = mean.proposed, sd = sigma.proposed)
+      phi <- dnorm(vec_means[new_center], mean = mean_proposed, sd = sigma_proposed)
 
       probMkplus1 <- dnorm(vec_means[new_center], mean = mu0, sd = sigma_0)
 
       # Likelihood ratio
-      LLk <- sum(dnorm(y, mean = vec_means[partitions], sd = sqrt(sigma2), log = TRUE))
-      LLkplus1 <- sum(dnorm(y, mean = vec_means[new.partitions], sd = sqrt(sigma2), log = TRUE))
-      ratio <- exp(LLkplus1 - LLk)
+      llk <- sum(dnorm(y, mean = vec_means[partitions], sd = sqrt(sigma2), log = TRUE))
+      llkplus1 <- sum(dnorm(y, mean = vec_means[new_partitions], sd = sqrt(sigma2), log = TRUE))
+      ratio <- exp(llkplus1 - llk)
       k <- length(centers)
 
       A <- ratio * (1 - c) * 1 * (probMkplus1 / phi)
@@ -141,7 +141,7 @@ gbdcd <- function(y,
 
       if (runif(1) < alpha) {
         centers <- new_centers
-        partitions <- new.partitions
+        partitions <- new_partitions
         v_accept[i] <- 1
       }
     }
@@ -151,25 +151,25 @@ gbdcd <- function(y,
       center <- sample(centers, 1)
       means <- aggregate(y ~ partitions, FUN = mean)
       media <- subset(means, partitions == center)$y
-      n.prop <- sum(partitions == center)
+      n_prop <- sum(partitions == center)
 
-      mean.proposed <- (sigma2 / (n.prop * sigma2_0 + sigma2)) * mu0 +
-        (n.prop * sigma2_0 / (n.prop * sigma2_0 + sigma2)) * media
+      mean_proposed <- (sigma2 / (n_prop * sigma2_0 + sigma2)) * mu0 +
+        (n_prop * sigma2_0 / (n_prop * sigma2_0 + sigma2)) * media
 
-      sigma.proposed <- sqrt(1 / ((1 / sigma2_0) + (n.prop / sigma2)))
+      sigma_proposed <- sqrt(1 / ((1 / sigma2_0) + (n_prop / sigma2)))
 
-      phi <- dnorm(vec_means[center], mean = mean.proposed, sd = sigma.proposed)
+      phi <- dnorm(vec_means[center], mean = mean_proposed, sd = sigma_proposed)
 
       probMkminus1 <- dnorm(vec_means[center], mean = mu0, sd = sigma_0)
 
       new_centers <- centers[-which(centers == center)]
-      new.partitions <- rcpp_partition(neigh, new_centers)
-      new.means <- aggregate(y ~ new.partitions, FUN = mean)
+      new_partitions <- rcpp_partition(neigh, new_centers)
+      new_means <- aggregate(y ~ new_partitions, FUN = mean)
 
       # Likelihood ratio
-      LLk <- sum(dnorm(y, mean = vec_means[partitions], sd = sqrt(sigma2), log = TRUE))
-      LLkminus1 <- sum(dnorm(y, mean = vec_means[new.partitions], sd = sqrt(sigma2), log = TRUE))
-      ratio <- exp(LLkminus1 - LLk)
+      llk <- sum(dnorm(y, mean = vec_means[partitions], sd = sqrt(sigma2), log = TRUE))
+      llkminus1 <- sum(dnorm(y, mean = vec_means[new_partitions], sd = sqrt(sigma2), log = TRUE))
+      ratio <- exp(llkminus1 - llk)
       k <- length(centers)
 
       A <- ratio * (1 / (1 - c)) * 1 * (phi / probMkminus1)
@@ -178,7 +178,7 @@ gbdcd <- function(y,
 
       if (runif(1) < alpha) {
         centers <- new_centers
-        partitions <- new.partitions
+        partitions <- new_partitions
         v_accept[i] <- 1
       }
     }
@@ -249,7 +249,7 @@ gbdcd <- function(y,
       n_Gk <- length(centers_shift_ok)
       m_Gj <- length(free_neighbors)
 
-      new.partitions <- rcpp_partition(neigh, new_centers)
+      new_partitions <- rcpp_partition(neigh, new_centers)
 
       vec_means[shift] <- vec_means[center]
 
@@ -270,16 +270,16 @@ gbdcd <- function(y,
       new.m_Gj <- length(new.free_neighbors)
 
       # Likelihood ratio
-      LLk <- sum(dnorm(y, mean = vec_means[partitions], sd = sqrt(sigma2), log = TRUE))
-      LLkshift <- sum(dnorm(y, mean = vec_means[new.partitions], sd = sqrt(sigma2), log = TRUE))
-      ratio <- exp(LLkshift - LLk)
+      llk <- sum(dnorm(y, mean = vec_means[partitions], sd = sqrt(sigma2), log = TRUE))
+      llkshift <- sum(dnorm(y, mean = vec_means[new_partitions], sd = sqrt(sigma2), log = TRUE))
+      ratio <- exp(llkshift - llk)
 
       A <- ratio * (n_Gk / new.n_Gk) * (m_Gj / new.m_Gj)
       alpha <- min(1, A)
 
       if (runif(1) < alpha) {
         centers <- new_centers
-        partitions <- new.partitions
+        partitions <- new_partitions
         v_accept[i] <- 1
       }
     }
@@ -291,19 +291,19 @@ gbdcd <- function(y,
       switch <- sample(1:length(centers), size = 2)
       new_centers <- replace(centers, list = switch, centers[rev(switch)])
 
-      new.partitions <- rcpp_partition(neigh, new_centers)
+      new_partitions <- rcpp_partition(neigh, new_centers)
 
       # Likelihood ratio
-      LLk <- sum(dnorm(y, mean = vec_means[partitions], sd = sqrt(sigma2), log = TRUE))
-      LLkswitch <- sum(dnorm(y, mean = vec_means[new.partitions], sd = sqrt(sigma2), log = TRUE))
-      ratio <- exp(LLkswitch - LLk)
+      llk <- sum(dnorm(y, mean = vec_means[partitions], sd = sqrt(sigma2), log = TRUE))
+      llk_switch <- sum(dnorm(y, mean = vec_means[new_partitions], sd = sqrt(sigma2), log = TRUE))
+      ratio <- exp(llk_switch - llk)
 
       A <- ratio
       alpha <- min(1, A)
 
       if (runif(1) < alpha) {
         centers <- new_centers
-        partitions <- new.partitions
+        partitions <- new_partitions
         v_accept[i] <- 1
       }
     }
